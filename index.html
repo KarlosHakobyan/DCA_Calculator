@@ -1,0 +1,300 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Compound Interest &amp; DCA Calculator</title>
+  <link rel="stylesheet" href="styles.css" />
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.3/dist/chart.umd.min.js" defer></script>
+  <script src="app.js" defer></script>
+</head>
+<body>
+  <header class="topbar">
+    <div class="container topbar-inner">
+      <div class="brand">
+        <div class="brand-badge">DCA</div>
+        <div>
+          <h1 data-i18n="appTitle">Compound Interest &amp; DCA</h1>
+          <p class="subtitle" data-i18n="appSubtitle">Interactive calculator for compounding growth, dollar-cost averaging, and average buy price</p>
+        </div>
+      </div>
+
+      <div class="topbar-controls">
+        <div class="presets" role="group" aria-label="Strategy presets">
+          <button type="button" class="btn btn-preset active" data-preset="index" data-i18n="presetIndex">Index DCA</button>
+          <button type="button" class="btn btn-preset" data-preset="crypto" data-i18n="presetCrypto">Volatile DCA</button>
+          <button type="button" class="btn btn-preset" data-preset="dividend" data-i18n="presetDividend">Income / Div</button>
+        </div>
+
+        <label class="select-wrap" title="Interface language">
+          <select id="langSelect" aria-label="Language selector">
+            <option value="en" selected>EN</option>
+            <option value="ru">RU</option>
+            <option value="hy">HY</option>
+          </select>
+        </label>
+
+        <div class="fx-box" title="Exchange rate to USD and auto conversion">
+          <label class="select-wrap">
+            <select id="currencySelect" aria-label="Currency selector">
+              <option value="$" selected>$ USD</option>
+              <option value="€">€ EUR</option>
+              <option value="₽">₽ RUB</option>
+              <option value="֏">֏ AMD</option>
+            </select>
+          </label>
+          <span class="fx-label" data-i18n="fxRateLabel">Rate to $:</span>
+          <input type="number" id="fxRateInput" class="fx-input" min="0.0001" step="0.01" value="1" aria-label="Exchange rate to USD" />
+          <label class="fx-check" title="Convert monetary values automatically when switching currency">
+            <input type="checkbox" id="autoConvertFx" checked />
+            <span data-i18n="fxAutoLabel">Auto</span>
+          </label>
+        </div>
+
+        <button type="button" id="infoBtn" class="btn btn-info" title="Guide and formulas">
+          <span>ℹ️</span> <span data-i18n="infoBtnText">Info</span>
+        </button>
+
+        <button type="button" id="themeToggle" class="btn btn-icon" title="Toggle theme" aria-label="Toggle theme">
+          <span id="themeIcon">☀️</span>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <main class="container main-grid">
+    <!-- Left column: Inputs -->
+    <aside class="panel inputs-panel">
+      <div class="panel-header">
+        <h2 data-i18n="paramsTitle">Investment Parameters</h2>
+        <button type="button" id="resetBtn" class="btn btn-ghost" data-i18n="resetBtn">Reset</button>
+      </div>
+
+      <section class="input-group">
+        <h3 data-i18n="secCapital">1. Capital &amp; DCA Schedule</h3>
+
+        <div class="field">
+          <div class="field-label">
+            <label for="initialCapital" data-i18n="lblInitial">Initial Capital</label>
+            <span class="unit-tag" data-currency>$</span>
+          </div>
+          <div class="field-control">
+            <input type="number" id="initialCapital" min="0" step="100" value="5000" />
+            <input type="range" id="initialCapitalRange" min="0" max="100000" step="500" value="5000" />
+          </div>
+        </div>
+
+        <div class="field">
+          <div class="field-label">
+            <label for="monthlyContribution" data-i18n="lblMonthly">Monthly DCA Contribution</label>
+            <span class="unit-tag" data-currency>$</span>
+          </div>
+          <div class="field-control">
+            <input type="number" id="monthlyContribution" min="0" step="50" value="500" />
+            <input type="range" id="monthlyContributionRange" min="0" max="10000" step="50" value="500" />
+          </div>
+        </div>
+
+        <div class="field">
+          <div class="field-label">
+            <label for="years" data-i18n="lblYears">Investment Horizon</label>
+            <span class="unit-tag" data-i18n="unitYears">yrs</span>
+          </div>
+          <div class="field-control">
+            <input type="number" id="years" min="1" max="50" step="1" value="10" />
+            <input type="range" id="yearsRange" min="1" max="40" step="1" value="10" />
+          </div>
+        </div>
+      </section>
+
+      <section class="input-group">
+        <h3 data-i18n="secReturn">2. Compounding &amp; Asset Price</h3>
+
+        <div class="field">
+          <div class="field-label">
+            <label for="annualReturn" data-i18n="lblReturn">Expected Annual Return (APY)</label>
+            <span class="unit-tag">%</span>
+          </div>
+          <div class="field-control">
+            <input type="number" id="annualReturn" min="-50" max="200" step="0.5" value="10" />
+            <input type="range" id="annualReturnRange" min="0" max="40" step="0.5" value="10" />
+          </div>
+        </div>
+
+        <div class="field">
+          <div class="field-label">
+            <label for="startAssetPrice" data-i18n="lblPrice">Current Asset Price</label>
+            <span class="unit-tag" data-currency>$</span>
+          </div>
+          <div class="field-control">
+            <input type="number" id="startAssetPrice" min="0.01" step="1" value="100" />
+            <input type="range" id="startAssetPriceRange" min="1" max="2000" step="5" value="100" />
+          </div>
+        </div>
+
+        <div class="field">
+          <div class="field-label">
+            <label for="compoundFreq" data-i18n="lblFreq">Compounding Frequency</label>
+            <span class="unit-tag" data-i18n="unitPerYr">/ yr</span>
+          </div>
+          <div class="field-control">
+            <select id="compoundFreq" class="full-select">
+              <option value="12" selected data-i18n="freqMonthly">Monthly (12/yr)</option>
+              <option value="4" data-i18n="freqQuarterly">Quarterly (4/yr)</option>
+              <option value="1" data-i18n="freqYearly">Annually (1/yr)</option>
+              <option value="365" data-i18n="freqDaily">Daily (365/yr)</option>
+            </select>
+          </div>
+        </div>
+      </section>
+
+      <section class="input-group">
+        <h3 data-i18n="secDrag">3. Fees &amp; Volatility Drag</h3>
+
+        <div class="field">
+          <div class="field-label">
+            <label for="annualFee" data-i18n="lblFee">Annual Fee / Expense Ratio</label>
+            <span class="unit-tag">%</span>
+          </div>
+          <div class="field-control">
+            <input type="number" id="annualFee" min="0" max="25" step="0.1" value="0.5" />
+            <input type="range" id="annualFeeRange" min="0" max="10" step="0.1" value="0.5" />
+          </div>
+        </div>
+
+        <div class="field">
+          <div class="field-label">
+            <label for="volatility" data-i18n="lblVol">Price Volatility (σ / yr)</label>
+            <span class="unit-tag">%</span>
+          </div>
+          <div class="field-control">
+            <input type="number" id="volatility" min="0" max="150" step="1" value="18" />
+            <input type="range" id="volatilityRange" min="0" max="100" step="1" value="18" />
+          </div>
+        </div>
+      </section>
+    </aside>
+
+    <!-- Right column: Analytics, KPIs, Charts, Table -->
+    <div class="dashboard-content">
+      <div id="healthBanner" class="health-banner status-good">
+        <div class="health-info">
+          <span class="health-dot"></span>
+          <div>
+            <strong id="healthTitle">Strong Compounding &amp; DCA Advantage</strong>
+            <p id="healthDesc">Consistent monthly contributions amplify compounding over time.</p>
+          </div>
+        </div>
+        <div class="export-actions">
+          <button type="button" id="copyReportBtn" class="btn btn-secondary" data-i18n="btnCopy">Copy Report</button>
+          <button type="button" id="exportCsvBtn" class="btn btn-secondary">CSV</button>
+          <button type="button" id="exportJsonBtn" class="btn btn-secondary">JSON</button>
+        </div>
+      </div>
+
+      <section class="kpi-grid">
+        <article class="kpi-card">
+          <span class="kpi-title" data-i18n="kpiFinalTitle">Projected Portfolio Value</span>
+          <div class="kpi-value" id="kpiFinalValue">$166,464</div>
+          <span class="kpi-sub" id="kpiTotalGain">Net Gain: +$101,464 (+156.1%)</span>
+        </article>
+
+        <article class="kpi-card">
+          <span class="kpi-title" data-i18n="kpiInvestedTitle">Total Invested Capital</span>
+          <div class="kpi-value" id="kpiTotalInvested">$65,000</div>
+          <span class="kpi-sub" id="kpiContribShare">DCA Contributions: $60,000</span>
+        </article>
+
+        <article class="kpi-card">
+          <span class="kpi-title" data-i18n="kpiUnitsTitle">Accumulated Units</span>
+          <div class="kpi-value" id="kpiUnits">1,042.50</div>
+          <span class="kpi-sub" id="kpiAvgPrice">Avg Buy Price (DCA): $62.35</span>
+        </article>
+
+        <article class="kpi-card">
+          <span class="kpi-title" data-i18n="kpiInterestTitle">Compound Interest Earned</span>
+          <div class="kpi-value" id="kpiInterest">$103,800</div>
+          <span class="kpi-sub" id="kpiFeesPaid">Fees Drag: -$2,336</span>
+        </article>
+
+        <article class="kpi-card">
+          <span class="kpi-title" data-i18n="kpiEffRateTitle">Effective Net Return</span>
+          <div class="kpi-value" id="kpiEffReturn">9.50%</div>
+          <span class="kpi-sub" id="kpiRealRate">Net of 0.5% fee</span>
+        </article>
+
+        <article class="kpi-card">
+          <span class="kpi-title" data-i18n="kpiMultipleTitle">Capital Multiple</span>
+          <div class="kpi-value" id="kpiMultiple">2.56x</div>
+          <span class="kpi-sub" id="kpiMonthlyPassive">~4% Safe Drawdown: $555/mo</span>
+        </article>
+      </section>
+
+      <section class="charts-grid">
+        <div class="panel chart-card">
+          <div class="panel-header">
+            <h3 data-i18n="chartGrowthTitle">Portfolio Growth: Invested vs. Compounded</h3>
+            <span class="badge" data-i18n="chartGrowthBadge">Year by Year</span>
+          </div>
+          <div class="chart-wrap">
+            <canvas id="growthChart"></canvas>
+          </div>
+        </div>
+
+        <div class="panel chart-card">
+          <div class="panel-header">
+            <h3 data-i18n="chartDcaTitle">DCA Average Buy Price vs. Market Price</h3>
+            <span class="badge" data-i18n="chartDcaBadge">Cost Averaging</span>
+          </div>
+          <div class="chart-wrap">
+            <canvas id="dcaChart"></canvas>
+          </div>
+        </div>
+      </section>
+
+      <section class="panel table-panel">
+        <div class="panel-header">
+          <h3 data-i18n="tableTitle">Yearly Projection Schedule</h3>
+          <span class="badge" data-i18n="tableBadge">Compound &amp; DCA Breakdown</span>
+        </div>
+        <div class="table-responsive">
+          <table class="metrics-table">
+            <thead>
+              <tr>
+                <th data-i18n="thYear">Year</th>
+                <th data-i18n="thInvested">Invested</th>
+                <th data-i18n="thInterest">Interest</th>
+                <th data-i18n="thValue">Portfolio Value</th>
+                <th data-i18n="thAvgPrice">Avg Buy Price</th>
+                <th data-i18n="thUnits">Units Held</th>
+              </tr>
+            </thead>
+            <tbody id="scheduleTableBody"></tbody>
+          </table>
+        </div>
+      </section>
+    </div>
+  </main>
+
+  <div id="infoModal" class="modal-backdrop" role="dialog" aria-modal="true" aria-labelledby="modalTitle" hidden>
+    <div class="modal-card">
+      <div class="modal-header">
+        <h2 id="modalTitle" data-i18n="modalTitle">Compound Interest &amp; DCA Guide</h2>
+        <button type="button" id="closeModalBtn" class="btn btn-icon" aria-label="Close">✕</button>
+      </div>
+      <div id="modalBody" class="modal-body"></div>
+      <div class="modal-footer">
+        <button type="button" id="modalOkBtn" class="btn btn-primary" data-i18n="modalCloseBtn">Got it</button>
+      </div>
+    </div>
+  </div>
+
+  <footer class="footer">
+    <div class="container">
+      <span>(C) Karlos Hakobyan</span>
+    </div>
+  </footer>
+
+  <div id="toast" class="toast" role="status" aria-live="polite"></div>
+</body>
+</html>
